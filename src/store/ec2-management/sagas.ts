@@ -17,11 +17,23 @@ function processGroupNames(data: InstanceResult[]): String[] {
   const groupNames: String[] = []
   data.forEach(x => {
       if(groupNames.indexOf(x.group_name) === -1) {
+        console.log("group_name is:" + x.group_name + ", launch_time is:" + x.launch_time)
         groupNames.push(x.group_name)
       }
     })
-    console.log("processed group names are!!!!!! : " + JSON.stringify(groupNames))
-    return groupNames
+  // console.log("processed group names are!!!!!! : " + JSON.stringify(groupNames))
+  const sortedGroupNames = groupNames.sort((groupName1, groupName2) => {
+    const instance1 = data.find(result => result.group_name === groupName1);
+    const instance2 = data.find(result => result.group_name === groupName2);
+    if (instance1 === undefined && instance2 === undefined) return ""
+    if (instance1 === undefined) return instance2.group_name;
+    if (instance2 === undefined) return instance1.group_name;
+    return instance1.launch_time.localeCompare(instance2.launch_time);
+  });
+
+  // Display or use the sorted group names
+  console.log(sortedGroupNames);
+  return groupNames
 }
 
 function* handleFetch() {
@@ -35,9 +47,18 @@ function* handleFetch() {
       const res: {result: InstanceResult[], error: string} = yield call(callApi_1, 'get', API_ENDPOINT, '/')
       if (res.error) {
         yield put(fetchError(res.error))
-        alert("operation failed")
+        alert(res.error)
       } else {
         const groupNames = processGroupNames(res.result)
+        groupNames.forEach(groupName => {
+          const instances = res.result.filter(x => x.group_name === groupName)
+          instances.sort((i1, i2) => {
+            const launchTime1 = i1.launch_time
+            const launchTime2 = i2.launch_time
+            return launchTime1.localeCompare(launchTime2)
+          })
+        })
+        console.log("instance result after sort: " + JSON.stringify(res.result))
         yield put(fetchSuccess({"instanceResult": res.result, "groups": groupNames}))
       }
     }

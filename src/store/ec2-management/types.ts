@@ -11,7 +11,8 @@ export interface InstanceResult extends ApiResponse {
   node_id: string,
   group_name: string,
   errors?: string,
-  plugin_version: string
+  plugin_version: string,
+  launch_time: string
 }
 
 export interface ClusterNodeStatus extends ApiResponse {
